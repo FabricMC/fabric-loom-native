@@ -9,7 +9,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-      - uses: gradle/wrapper-validation-action@v1
+      - uses: gradle/wrapper-validation-action@v2
       - run: ./gradlew checkVersion build signJar publish --stacktrace
         env:
           MAVEN_URL: ${{ secrets.MAVEN_URL }}

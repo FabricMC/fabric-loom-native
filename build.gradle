@@ -1,8 +1,12 @@
 plugins {
 	id "java-library"
+    id "maven-publish"
     id "com.diffplug.spotless"  version "6.25.0" apply false
     id "de.undercouch.download" version "5.5.0"  apply false
 }
+
+def ENV = System.getenv()
+version = "0.1.0" + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
 allprojects {
     apply plugin: 'com.diffplug.spotless'
@@ -19,6 +23,17 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 17
+}
+
+java {
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 spotless {
@@ -39,6 +54,8 @@ def architectures = [
     "Aarch64"
 ]
 
+evaluationDependsOn(":windows")
+
 def collectDlls = tasks.register("collectDlls", Sync) {
     architectures.forEach { arch ->
         from(project(":windows").tasks.named("linkRelease${arch}").get().linkedFile) {
@@ -54,3 +71,37 @@ def collectDlls = tasks.register("collectDlls", Sync) {
 }
 
 sourceSets.main.resources.srcDir collectDlls
+
+publishing {
+    publications {
+        create("maven", MavenPublication) {
+            groupId "net.fabricmc"
+            artifactId "fabric-loom-native"
+            version project.version
+
+            from components.java
+
+            // Include the PDB files in case someone wants to debug
+            architectures.forEach { arch ->
+                def dll = project(":windows").tasks.named("linkRelease${arch}").get().linkedFile
+                def pdb = dll.getAsFile().map { file -> new File(file.absolutePath.replace(".dll", ".pdb")) }
+                artifact(pdb) {
+                    classifier arch.toLowerCase()
+                    extension "pdb"
+                }
+            }
+        }
+    }
+
+    repositories {
+        if (ENV.MAVEN_URL) {
+            maven {
+                url ENV.MAVEN_URL
+                credentials {
+                    username ENV.MAVEN_USERNAME
+                    password ENV.MAVEN_PASSWORD
+                }
+            }
+        }
+    }
+}
