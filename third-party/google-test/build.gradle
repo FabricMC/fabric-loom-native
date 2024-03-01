@@ -1,0 +1,52 @@
+plugins {
+    id "cpp-library"
+    id "de.undercouch.download"
+}
+
+def googleTestVersion = "1.14.0"
+
+tasks.register("downloadGoogleTest", Download) {
+    src "https://github.com/google/googletest/archive/refs/tags/v${googleTestVersion}.zip"
+    dest layout.buildDirectory
+    overwrite false
+}
+
+tasks.register("extractGoogleTest", Sync) {
+    dependsOn tasks.downloadGoogleTest
+    from zipTree(tasks.downloadGoogleTest.getOutputs().files.singleFile)
+
+    include "*/googletest/**"
+
+    into layout.buildDirectory.dir("googletest")
+}
+
+library {
+    def googleTest = tasks.named("extractGoogleTest").map { it.outputs.files.singleFile }
+
+    source {
+        from fileTree(googleTest.map { new File(it, "googletest-${googleTestVersion}/googletest/") }) {
+            include "src/gtest-all.cc"
+            include "src/*.h"
+        }
+    }
+
+    publicHeaders {
+        from googleTest.map { new File(it, "googletest-${googleTestVersion}/googletest/include") }
+    }
+
+    privateHeaders {
+        from googleTest.map { new File(it, "googletest-${googleTestVersion}/googletest/") }
+    }
+
+    targetMachines = [
+        machines.windows.x86, machines.windows.x86_64, machines.windows.architecture("aarch64")
+    ]
+
+    linkage = [
+        Linkage.STATIC
+    ]
+}
+
+tasks.withType(CppCompile).configureEach {
+    compilerArgs.addAll("/D_DEBUG", "/MDd", "/MP")
+}
