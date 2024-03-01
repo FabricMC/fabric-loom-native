@@ -1,0 +1,5 @@
+rootProject.name = 'fabric-loom-native'
+
+include 'third-party'
+include 'third-party:google-test'
+include 'windows'
