@@ -66,9 +66,9 @@ RmSession createRmSession() {
 // https://devblogs.microsoft.com/oldnewthing/20120217-00/?p=8283
 // TODO maybe look into using:
 // https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nf-shobjidl_core-ifileisinuse-closefile
-std::vector<unsigned long>
+std::vector<std::uint64_t>
 getPidHoldingFileLock(const std::filesystem::path &file) {
-  std::vector<unsigned long> pids;
+  std::vector<std::uint64_t> pids;
   RmSession session = createRmSession();
 
   PCWSTR path_ptr = file.c_str();

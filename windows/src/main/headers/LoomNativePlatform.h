@@ -28,6 +28,6 @@
 #include <vector>
 
 namespace Loom {
-std::vector<unsigned long>
+std::vector<std::uint64_t>
 getPidHoldingFileLock(const std::filesystem::path &file);
 }

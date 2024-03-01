@@ -43,10 +43,14 @@ std::wstring asWstring(JNIEnv *env, jstring string) {
   return value;
 }
 
-jlongArray asJlongArray(JNIEnv *env, const std::vector<unsigned long> &vec) {
-  jlongArray array = env->NewLongArray(static_cast<jsize>(vec.size()));
-  env->SetLongArrayRegion(array, 0, static_cast<jsize>(vec.size()),
-                          reinterpret_cast<const jlong *>(vec.data()));
+jlongArray asJlongArray(JNIEnv *env, const std::vector<std::uint64_t> &vec) {
+  static_assert(sizeof(std::int64_t) == sizeof(jlong));
+  const auto length = static_cast<jsize>(vec.size());
+  jlongArray array = env->NewLongArray(length);
+  if (array != nullptr && length != 0) {
+    env->SetLongArrayRegion(array, 0, length,
+                            reinterpret_cast<const jlong *>(vec.data()));
+  }
   return array;
 }
 } // namespace
