@@ -1,0 +1,17 @@
+name: Build
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/wrapper-validation-action@v2
+      - run: ./gradlew build --stacktrace --warning-mode fail
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Artifacts
+          path: build/libs/
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Artifacts
+          path: windows/build/libs/
