@@ -24,8 +24,7 @@
 
 package net.fabricmc.loom.nativeplatform.test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,5 +53,11 @@ public class LoomNativePlatformTest {
 
 			assertEquals(currentProcess.pid(), process.pid());
 		}
+	}
+
+	@Test
+	void getWindowTitle() {
+		var processes = LoomNativePlatform.getWindowTitlesForPid(0);
+		assertEquals(0, processes.size());
 	}
 }

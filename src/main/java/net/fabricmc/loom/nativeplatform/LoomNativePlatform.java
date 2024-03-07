@@ -52,6 +52,19 @@ public final class LoomNativePlatform {
 	}
 
 	/**
+	 * Get a list of window titles for the given process ID.
+	 * @param pid The process ID
+	 * @return An array of window titles, may be empty if the process has no windows
+	 */
+	public static List<String> getWindowTitlesForPid(long pid) {
+		if (LoomNativePlatformUtils.isReady()) {
+			return Arrays.asList(LoomNativePlatformImpl.getWindowTitlesForPid(pid));
+		}
+
+		return Collections.emptyList();
+	}
+
+	/**
 	 * @return true if the current platform is supported
 	 */
 	public static boolean isSupported() {

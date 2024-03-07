@@ -61,6 +61,58 @@ RmSession createRmSession() {
 
   return RmSession{dwSession};
 }
+
+struct EnumWindowsProcData {
+  std::uint64_t pid;
+  std::vector<std::wstring> &titles;
+};
+
+static bool isWindowOfPid(HWND hwnd, std::uint64_t pid) {
+  DWORD windowPid;
+  ::GetWindowThreadProcessId(hwnd, &windowPid);
+  return windowPid == pid;
+}
+
+BOOL isMainWindow(HWND handle) {
+  return ::GetWindow(handle, GW_OWNER) == (HWND)0 && ::IsWindowVisible(handle);
+}
+
+static std::optional<std::wstring> getWindowTitle(HWND hwnd) {
+  std::wstring title;
+  auto length = ::GetWindowTextLengthW(hwnd);
+
+  if (length == 0) {
+    return std::nullopt;
+  }
+
+  title.resize(length + 1);
+  ::GetWindowTextW(hwnd, title.data(), static_cast<int>(title.size()));
+
+  // Remove the null terminator
+  title.pop_back();
+
+  return title;
+}
+
+static BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
+  EnumWindowsProcData *data = reinterpret_cast<EnumWindowsProcData *>(lParam);
+
+  if (!isWindowOfPid(hwnd, data->pid)) {
+    return TRUE;
+  }
+
+  if (!isMainWindow(hwnd)) {
+    return TRUE;
+  }
+
+  auto title = getWindowTitle(hwnd);
+
+  if (title) {
+    data->titles.push_back(title.value());
+  }
+
+  return TRUE;
+}
 } // namespace
 
 // https://devblogs.microsoft.com/oldnewthing/20120217-00/?p=8283
@@ -110,5 +162,16 @@ getPidHoldingFileLock(const std::filesystem::path &file) {
   }
 
   return pids;
+}
+
+std::vector<std::wstring> getProcessWindowTitles(std::uint64_t pid) {
+  std::vector<std::wstring> titles;
+  EnumWindowsProcData data{pid, titles};
+
+  if (!::EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&data))) {
+    throwLastError("EnumWindows failed");
+  }
+
+  return titles;
 }
 } // namespace Loom
