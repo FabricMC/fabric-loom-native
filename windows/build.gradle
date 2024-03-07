@@ -1,0 +1,56 @@
+plugins {
+	id 'cpp-library'
+	id 'cpp-unit-test'
+}
+
+library {
+	targetMachines = [
+			machines.windows.x86, machines.windows.x86_64, machines.windows.architecture("aarch64")
+	]
+}
+
+library {
+	linkage = [
+		Linkage.SHARED
+	]
+}
+
+import org.gradle.internal.jvm.Jvm
+def jvmHome = Jvm.current().javaHome
+
+tasks.withType(CppCompile).configureEach {
+	includes.from(new File(jvmHome, "include"))
+	includes.from(new File(jvmHome, "include/win32"))
+	includes.from(project.rootProject.getLayout().buildDirectory.dir("generated/sources/headers/java/main"))
+
+	compilerArgs.addAll("/std:c++20", "/EHsc", "/W4", "/WX", "/MP")
+
+	// The classes task generates the JNI headers
+	dependsOn project.rootProject.getTasks().named("compileJava")
+
+	if (it.name.startsWith("compileTest") || it.name.startsWith("compileDebug")) {
+		compilerArgs.addAll("/D_DEBUG", "/MDd")
+		debuggable = true
+	}
+}
+
+tasks.withType(AbstractLinkTask).configureEach {
+	linkerArgs.addAll("Rstrtmgr.lib")
+}
+
+unitTest {
+	dependencies {
+		implementation project(":third-party:google-test")
+	}
+}
+
+spotless {
+	lineEndings = com.diffplug.spotless.LineEnding.UNIX
+
+	cpp {
+		target 'src/main/cpp/**', 'src/main/headers/**', 'src/test/cpp/**'
+		licenseHeaderFile(rootProject.file("HEADER")).yearSeparator("-")
+		def clangVersion = (String) ("clang-format --version".execute().text =~ /\d+\.\d+\.\d+/)[0]
+		clangFormat(clangVersion)
+	}
+}
