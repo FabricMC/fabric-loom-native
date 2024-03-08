@@ -30,4 +30,6 @@
 namespace Loom {
 std::vector<std::uint64_t>
 getPidHoldingFileLock(const std::filesystem::path &file);
-}
+
+std::vector<std::wstring> getProcessWindowTitles(std::uint64_t pid);
+} // namespace Loom

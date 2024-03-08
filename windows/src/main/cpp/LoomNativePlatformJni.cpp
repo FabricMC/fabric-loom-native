@@ -53,14 +53,52 @@ jlongArray asJlongArray(JNIEnv *env, const std::vector<std::uint64_t> &vec) {
   }
   return array;
 }
+
+jobjectArray asJStringArray(JNIEnv *env, const std::vector<std::wstring> &vec) {
+  jclass stringClass = env->FindClass("java/lang/String");
+  const auto length = static_cast<jsize>(vec.size());
+  jobjectArray array = env->NewObjectArray(length, stringClass, nullptr);
+  if (array != nullptr) {
+    for (jsize i = 0; i < length; i++) {
+      auto str = vec[i];
+      auto strLen = static_cast<jsize>(str.size());
+      jstring string =
+          env->NewString(reinterpret_cast<const jchar *>(str.c_str()), strLen);
+      env->SetObjectArrayElement(array, i, string);
+    }
+  }
+  return array;
+}
+
+jint throwRuntimeException(JNIEnv *env, const std::string &message) {
+  jclass exceptionClass = env->FindClass("java/lang/RuntimeException");
+  return env->ThrowNew(exceptionClass, message.c_str());
+}
 } // namespace
 
 JNIEXPORT jlongArray JNICALL
 Java_net_fabricmc_loom_nativeplatform_LoomNativePlatformImpl_getPidsHoldingFileHandles(
     JNIEnv *env, jclass, jstring path) {
+  try {
+    const auto wpath = asWstring(env, path);
+    const auto pids = Loom::getPidHoldingFileLock(wpath);
+    return asJlongArray(env, pids);
+  } catch (const std::exception &e) {
+    throwRuntimeException(env, e.what());
+  }
 
-  const auto wpath = asWstring(env, path);
-  const auto pids = Loom::getPidHoldingFileLock(wpath);
+  return nullptr;
+}
 
-  return asJlongArray(env, pids);
+JNIEXPORT jobjectArray JNICALL
+Java_net_fabricmc_loom_nativeplatform_LoomNativePlatformImpl_getWindowTitlesForPid(
+    JNIEnv *env, jclass, jlong pid) {
+  try {
+    const auto titles = Loom::getProcessWindowTitles(pid);
+    return asJStringArray(env, titles);
+  } catch (const std::exception &e) {
+    throwRuntimeException(env, e.what());
+  }
+
+  return nullptr;
 }

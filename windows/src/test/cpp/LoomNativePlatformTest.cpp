@@ -78,3 +78,9 @@ TEST_F(LoomNativePlatformTest, FileDoesNotExist) {
   const auto pids = Loom::getPidHoldingFileLock(file);
   ASSERT_EQ(pids.size(), 0);
 }
+
+// TODO improve tests to spawn a window and check for its title
+TEST_F(LoomNativePlatformTest, GetNoWindowTitles) {
+  const auto titles = Loom::getProcessWindowTitles(0);
+  ASSERT_EQ(titles.size(), 0);
+}
