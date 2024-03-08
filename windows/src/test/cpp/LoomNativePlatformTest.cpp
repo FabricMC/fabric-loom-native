@@ -53,7 +53,7 @@ TEST_F(LoomNativePlatformTest, HoldingFileLock) {
   const auto pids = Loom::getPidHoldingFileLock(file);
   const auto currentPid = ::GetCurrentProcessId();
 
-  ASSERT_EQ(pids.size(), 1);
+  ASSERT_EQ(pids.size(), 1u);
   ASSERT_NE(std::find(pids.begin(), pids.end(), currentPid), pids.end());
 }
 
@@ -68,7 +68,7 @@ TEST_F(LoomNativePlatformTest, FileNotLocked) {
   }
 
   const auto pids = Loom::getPidHoldingFileLock(file);
-  ASSERT_EQ(pids.size(), 0);
+  ASSERT_EQ(pids.size(), 0u);
 }
 
 TEST_F(LoomNativePlatformTest, FileDoesNotExist) {
@@ -76,11 +76,11 @@ TEST_F(LoomNativePlatformTest, FileDoesNotExist) {
       std::filesystem::temp_directory_path() / "test.txt";
 
   const auto pids = Loom::getPidHoldingFileLock(file);
-  ASSERT_EQ(pids.size(), 0);
+  ASSERT_EQ(pids.size(), 0u);
 }
 
 // TODO improve tests to spawn a window and check for its title
 TEST_F(LoomNativePlatformTest, GetNoWindowTitles) {
   const auto titles = Loom::getProcessWindowTitles(0);
-  ASSERT_EQ(titles.size(), 0);
+  ASSERT_EQ(titles.size(), 0u);
 }
