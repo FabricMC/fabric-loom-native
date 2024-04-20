@@ -24,18 +24,8 @@
 
 package net.fabricmc.loom.nativeplatform;
 
-class LoomNativePlatformImpl {
-	/**
-	 * Get the process IDs of the processes holding file handles to the given path.
-	 * @param path The path to the file
-	 * @return An array of process IDs, may be empty if no processes have open file handles to the given path
-	 */
-	public static native long[] getPidsHoldingFileHandles(String path) throws LoomNativePlatformException;
-
-	/**
-	 * Get a list of window titles for the given process ID.
-	 * @param pid The process ID
-	 * @return An array of window titles, may be empty if the process has no windows
-	 */
-	public static native String[] getWindowTitlesForPid(long pid) throws LoomNativePlatformException;
+public class LoomNativePlatformException extends Exception {
+	public LoomNativePlatformException(String message) {
+		super(message);
+	}
 }

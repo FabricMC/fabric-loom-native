@@ -46,9 +46,12 @@ struct ProcessRaiiTraits {
 };
 using Process = RaiiWithInvalidValue<ProcessRaiiTraits>;
 
+[[noreturn]] inline void throwError(const std::string &message, DWORD error) {
+  throw std::system_error(error, std::system_category(), message);
+}
+
 [[noreturn]] inline void throwLastError(const std::string &message) {
-  auto lastError = GetLastError();
-  throw std::system_error(lastError, std::system_category(), message);
+  throwError(message, ::GetLastError());
 }
 
 RmSession createRmSession() {
@@ -123,13 +126,14 @@ getPidHoldingFileLock(const std::filesystem::path &file) {
   std::vector<std::uint64_t> pids;
   RmSession session = createRmSession();
 
+  DWORD dwError;
   PCWSTR path_ptr = file.c_str();
-  if (::RmRegisterResources(session.get(), 1, &path_ptr, 0, NULL, 0, NULL) !=
-      ERROR_SUCCESS) {
-    throwLastError("RmRegisterResources failed");
+  dwError =
+      ::RmRegisterResources(session.get(), 1, &path_ptr, 0, NULL, 0, NULL);
+  if (dwError != ERROR_SUCCESS) {
+    throwError("RmRegisterResources failed", dwError);
   }
 
-  DWORD dwError;
   DWORD dwReason;
   UINT nProcInfoNeeded = 64, nProcInfo;
   std::vector<RM_PROCESS_INFO> rgpi;
@@ -143,7 +147,7 @@ getPidHoldingFileLock(const std::filesystem::path &file) {
   } while (dwError == ERROR_MORE_DATA);
 
   if (dwError != ERROR_SUCCESS) {
-    throwLastError("RmGetList failed");
+    throwError("RmGetList failed", dwError);
   }
 
   for (const auto &info : rgpi) {
