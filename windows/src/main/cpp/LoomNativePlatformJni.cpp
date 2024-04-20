@@ -70,8 +70,9 @@ jobjectArray asJStringArray(JNIEnv *env, const std::vector<std::wstring> &vec) {
   return array;
 }
 
-jint throwRuntimeException(JNIEnv *env, const std::string &message) {
-  jclass exceptionClass = env->FindClass("java/lang/RuntimeException");
+jint throwLoomNativePlatformException(JNIEnv *env, const std::string &message) {
+  jclass exceptionClass = env->FindClass(
+      "net/fabricmc/loom/nativeplatform/LoomNativePlatformException");
   return env->ThrowNew(exceptionClass, message.c_str());
 }
 } // namespace
@@ -84,7 +85,7 @@ Java_net_fabricmc_loom_nativeplatform_LoomNativePlatformImpl_getPidsHoldingFileH
     const auto pids = Loom::getPidHoldingFileLock(wpath);
     return asJlongArray(env, pids);
   } catch (const std::exception &e) {
-    throwRuntimeException(env, e.what());
+    throwLoomNativePlatformException(env, e.what());
   }
 
   return nullptr;
@@ -97,7 +98,7 @@ Java_net_fabricmc_loom_nativeplatform_LoomNativePlatformImpl_getWindowTitlesForP
     const auto titles = Loom::getProcessWindowTitles(pid);
     return asJStringArray(env, titles);
   } catch (const std::exception &e) {
-    throwRuntimeException(env, e.what());
+    throwLoomNativePlatformException(env, e.what());
   }
 
   return nullptr;

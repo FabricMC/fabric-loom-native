@@ -28,10 +28,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import net.fabricmc.loom.nativeplatform.LoomNativePlatform;
+import net.fabricmc.loom.nativeplatform.LoomNativePlatformException;
 
 public class LoomNativePlatformTest {
 	@Test
@@ -40,7 +43,7 @@ public class LoomNativePlatformTest {
 	}
 
 	@Test
-	void getPid() throws IOException {
+	void getPid() throws IOException, LoomNativePlatformException {
 		var path = Files.createTempFile("test", ".txt");
 
 		// Hold a lock on the path
@@ -56,7 +59,13 @@ public class LoomNativePlatformTest {
 	}
 
 	@Test
-	void getWindowTitle() {
+	void getPidFileDoesntExist() throws LoomNativePlatformException {
+		List<ProcessHandle> processes = LoomNativePlatform.getProcessesWithLockOn(Paths.get("does", "not", "exist"));
+		assertEquals(0, processes.size());
+	}
+
+	@Test
+	void getWindowTitle() throws LoomNativePlatformException {
 		var processes = LoomNativePlatform.getWindowTitlesForPid(0);
 		assertEquals(0, processes.size());
 	}

@@ -37,7 +37,7 @@ public final class LoomNativePlatform {
 	 * @param path the path to the file
 	 * @return a list of processes that have a lock on the file
 	 */
-	public static List<ProcessHandle> getProcessesWithLockOn(Path path) {
+	public static List<ProcessHandle> getProcessesWithLockOn(Path path) throws LoomNativePlatformException {
 		if (LoomNativePlatformUtils.isReady()) {
 			final long[] pids = LoomNativePlatformImpl.getPidsHoldingFileHandles(path.toString());
 
@@ -56,7 +56,7 @@ public final class LoomNativePlatform {
 	 * @param pid The process ID
 	 * @return An array of window titles, may be empty if the process has no windows
 	 */
-	public static List<String> getWindowTitlesForPid(long pid) {
+	public static List<String> getWindowTitlesForPid(long pid) throws LoomNativePlatformException {
 		if (LoomNativePlatformUtils.isReady()) {
 			return Arrays.asList(LoomNativePlatformImpl.getWindowTitlesForPid(pid));
 		}
