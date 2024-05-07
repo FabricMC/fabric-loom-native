@@ -6,7 +6,7 @@ plugins {
 }
 
 def ENV = System.getenv()
-version = "0.2.0" + (ENV.GITHUB_ACTIONS ? "" : "+local")
+version = "0.2.1" + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
 allprojects {
     apply plugin: 'com.diffplug.spotless'
