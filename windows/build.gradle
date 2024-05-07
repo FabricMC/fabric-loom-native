@@ -35,7 +35,7 @@ tasks.withType(CppCompile).configureEach {
 }
 
 tasks.withType(AbstractLinkTask).configureEach {
-	linkerArgs.addAll("Rstrtmgr.lib", "User32.lib")
+	linkerArgs.addAll("Rstrtmgr.lib", "User32.lib", "/OPT:REF")
 }
 
 unitTest {
